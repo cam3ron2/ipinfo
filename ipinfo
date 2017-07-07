@@ -1,0 +1,102 @@
+#!/bin/bash
+
+#by Cameron Larsen
+#geo		-g --only-geo
+#city		-c --only-city
+#org		-o --only-org
+#hostname	-H --only-hostname
+#region		-r --only-region
+#country	-C --only-country
+#loc		-l --only-loc
+#help		-h --help
+
+#Usage: ipinfo [IP ADDRESS]... [OPTIONS]...
+#If no IP address is provided, the public Ip of the current machine will be checked. 
+#Flags/Paramaters will still work. 
+#multiple flags are not supported by the API. 
+
+
+print_help() {
+echo -e "Usage: ipinfo [IP ADDRESS]... [OPTION]...\n\nIf no IP address is provided, the public Ip of the current machine will be checked.\nmultiple flags are not supported by the API.\n
+Options:
+geo            -g --only-geo
+city           -c --only-city
+org            -o --only-org
+hostname       -H --only-hostname
+region         -r --only-region
+country        -C --only-country
+loc            -l --only-loc
+help           -h --help
+"
+}
+
+if [[ $# -eq 0 ]] ; then
+	curl --silent ipinfo.io | sed -e 's/\"//g' -e 's/\,//g' -e 's/\x7B//g' -e 's/\x7D//g' -e '/^$/d'
+elif [[ $# -eq 1 ]] ; then
+	_ARGS="1"
+elif [[ $# -eq 2 ]] ; then
+	_ARGS="2"
+elif [[ $# -gt 2 ]] ; then
+	print_help
+fi
+
+_IP_CHK=$1
+_PARAM_CHK=$2
+_PASSED_ARGS=$(echo $* | grep -Eo '\-g|\-c|\-o|\-H|\-r|\-C|\-l|\-h')
+if [[ $(echo $* | grep -Eo '\-g|\-c|\-o|\-H|\-r|\-C|\-l|\-h' ) ]] ; then
+	if [[ $_ARGS -eq 1 ]] ; then
+		if [[ $_PASSED_ARGS == "-g" ]] ; then
+			_IP_CHK=geo
+		elif [[ $_PASSED_ARGS == "-c" ]] ; then
+			_IP_CHK=city
+		elif [[ $_PASSED_ARGS == "-o" ]] ; then
+			_IP_CHK=org
+		elif [[ $_PASSED_ARGS == "-H" ]] ; then
+			_IP_CHK=hostname
+		elif [[ $_PASSED_ARGS == "-r" ]] ; then
+			_IP_CHK=region
+		elif [[ $_PASSED_ARGS == "-C" ]] ; then
+			_IP_CHK=country
+		elif [[ $_PASSED_ARGS == "-l" ]] ; then
+			_IP_CHK=loc
+		elif [[ $_PASSED_ARGS == "-h" ]] ; then
+			print_help
+			exit 0
+		fi
+	elif [[ $_ARGS -eq 2 ]] ; then
+                if [[ $_PASSED_ARGS == "-g" ]] ; then
+                        _PARAM_CHK=geo
+                elif [[ $_PASSED_ARGS == "-c" ]] ; then
+                        _PARAM_CHK=city
+                elif [[ $_PASSED_ARGS == "-o" ]] ; then
+                        _PARAM_CHK=org
+                elif [[ $_PASSED_ARGS == "-H" ]] ; then
+                        _PARAM_CHK=hostname
+                elif [[ $_PASSED_ARGS == "-r" ]] ; then
+                        _PARAM_CHK=region
+                elif [[ $_PASSED_ARGS == "-C" ]] ; then
+                        _PARAM_CHK=country
+                elif [[ $_PASSED_ARGS == "-l" ]] ; then
+                        _PARAM_CHK=loc
+                elif [[ $_PASSED_ARGS == "-h" ]] ; then
+                        print_help
+			exit 0
+                fi
+
+	fi
+fi
+
+
+get_all_info() {
+	curl --silent "ipinfo.io/${_IP_CHK}" | sed -e 's/\"//g' -e 's/\,//g' -e 's/\x7B//g' -e 's/\x7D//g' -e '/^$/d' 
+}
+
+get_info() {
+	curl --silent "ipinfo.io/${_IP_CHK}/${_PARAM_CHK}" | sed -e 's/\"//g' -e 's/\,//g' -e 's/\x7B//g' -e 's/\x7D//g' -e '/^$/d'
+}
+
+if [[ $# -eq 1 ]] ; then
+	get_all_info
+elif [[ $# -eq 2 ]] ; then
+	get_info
+fi
